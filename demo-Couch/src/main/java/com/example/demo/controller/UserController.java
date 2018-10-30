@@ -1,8 +1,11 @@
 package com.example.demo.controller;
 
 import java.net.URISyntaxException;
+import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -17,46 +20,55 @@ import com.example.demo.repository.UserRepository;
 
 @RestController
 @RequestMapping("/user")
-public class UserController  {
-	
+public class UserController {
+
 	@Autowired
 	private UserRepository userRepo;
-	
+
 	@PostMapping("/save")
 	public String saveUser(@RequestBody User user) {
-		
+
 		System.out.println(user);
-		
+
 		try {
 			userRepo.saveUser(user);
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		
-		
+
 		return null;
 	}
-	
+
 	@GetMapping("/{id}")
-	public User getUser(@PathVariable("id") String id ) {
-	User user =	userRepo.getuser(id);
+	public User getUser(@PathVariable("id") String id) {
+		User user = userRepo.getuser(id);
 		return user;
 	}
-	
-	
+
 	@DeleteMapping("/{id}/{revision}")
 	public User deleteUser(@PathVariable("id") String id, @PathVariable("revision") String revision) {
-		User user =userRepo.deleteUser(id, revision);
+		User user = userRepo.deleteUser(id, revision);
 		System.out.println("docs deleted sucessfully");
 		return null;
-		
+
 	}
+
 	@PutMapping("update")
 	public User updateUser(@RequestBody User user) {
-		User users=userRepo.updateUser(user);
+		User users = userRepo.updateUser(user);
 		System.out.println("updated successfully");
 		return users;
-		}
+
+	}
+
+	@GetMapping("/{name}")
+	public ResponseEntity<User> getUserByName(@PathVariable("name") String name) {
+
+		ResponseEntity responseEntity = null;
+		List<User> allUsers = userRepo.findByName(name);
+		responseEntity = new ResponseEntity<>(allUsers, HttpStatus.OK);
+		return responseEntity;
+	}
 
 }
