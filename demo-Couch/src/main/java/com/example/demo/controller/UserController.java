@@ -1,5 +1,6 @@
 package com.example.demo.controller;
 
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.List;
 
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.example.demo.model.User;
+import com.example.demo.repository.CouchDbImpl;
 import com.example.demo.repository.UserRepository;
 
 @RestController
@@ -24,11 +26,13 @@ public class UserController {
 
 	@Autowired
 	private UserRepository userRepo;
+	
 
 	@PostMapping("/save")
 	public String saveUser(@RequestBody User user) {
 
 		System.out.println(user);
+	
 
 		try {
 			userRepo.saveUser(user);
@@ -40,11 +44,11 @@ public class UserController {
 		return null;
 	}
 
-	@GetMapping("/{id}")
-	public User getUser(@PathVariable("id") String id) {
-		User user = userRepo.getuser(id);
-		return user;
-	}
+//	@GetMapping("/{id}")
+//	public User getUser(@PathVariable("id") String id) {
+//		User user = userRepo.getuser(id);
+//		return user;
+//	}
 
 	@DeleteMapping("/{id}/{revision}")
 	public User deleteUser(@PathVariable("id") String id, @PathVariable("revision") String revision) {
@@ -66,8 +70,15 @@ public class UserController {
 	public ResponseEntity<User> getUserByName(@PathVariable("name") String name) {
 
 		ResponseEntity responseEntity = null;
-		List<User> allUsers = userRepo.findByName(name);
-		responseEntity = new ResponseEntity<>(allUsers, HttpStatus.OK);
+		List<User> allUsers;
+		try {
+			allUsers = userRepo.findByName(name);
+			responseEntity = new ResponseEntity<>(allUsers, HttpStatus.OK);
+		} catch (MalformedURLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		
 		return responseEntity;
 	}
 

@@ -3,7 +3,7 @@ package com.example.demo.repository;
 import java.net.MalformedURLException;
 
 import java.net.URISyntaxException;
-
+import java.util.ArrayList;
 import java.util.List;
 
 import org.ektorp.CouchDbConnector;
@@ -15,16 +15,14 @@ import org.ektorp.http.StdHttpClient;
 import org.ektorp.impl.StdCouchDbConnector;
 import org.ektorp.impl.StdCouchDbInstance;
 import org.ektorp.support.CouchDbRepositorySupport;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
 import com.example.demo.model.User;
 
 @Service
-public class UserRepositoryImpl extends CouchDbRepositorySupport<User> implements UserRepository {
-
-	public UserRepositoryImpl(CouchDbConnector db) {
-		super(User.class, db);
-	}
+public class UserRepositoryImpl implements UserRepository {
 
 	@Override
 	public User saveUser(User user) throws URISyntaxException {
@@ -34,7 +32,8 @@ public class UserRepositoryImpl extends CouchDbRepositorySupport<User> implement
 
 			// creating database
 
-			CouchDbConnector connector = new StdCouchDbConnector("demoUser", dbInstance);
+			CouchDbConnector connector = new StdCouchDbConnector("demouser", dbInstance);
+			CouchDbImpl impl = new CouchDbImpl(connector);
 			connector.createDatabaseIfNotExists();
 
 			String database = connector.getDatabaseName();
@@ -42,7 +41,8 @@ public class UserRepositoryImpl extends CouchDbRepositorySupport<User> implement
 
 			// creating a documents
 			// DesignDocument document = new DesignDocument(user.getId().toString());
-			connector.create(user);
+			// connector.create(user);
+			impl.add(user);
 
 		} catch (MalformedURLException e) {
 
@@ -55,8 +55,8 @@ public class UserRepositoryImpl extends CouchDbRepositorySupport<User> implement
 	// connection
 
 	public CouchDbInstance getconnection() throws MalformedURLException {
-		HttpClient client = new StdHttpClient.Builder().url("http://localhost:5984").username("swe").password("123")
-				.build();
+		HttpClient client = new StdHttpClient.Builder().url("http://localhost:5984").username("chandan")
+				.password("root").build();
 
 		CouchDbInstance dbinstance = new StdCouchDbInstance(client);
 
@@ -69,12 +69,12 @@ public class UserRepositoryImpl extends CouchDbRepositorySupport<User> implement
 		User user = new User();
 		try {
 			dbInstance = getconnection();
-			CouchDbConnector connector = new StdCouchDbConnector("demoUser", dbInstance);
+			CouchDbConnector connector = new StdCouchDbConnector("demouser", dbInstance);
 
 			// Options options = new Options().includeRevisions();
 			user = connector.get(User.class, id);
 
-			System.out.println("revisionid::" + connector.getCurrentRevision(id));
+			// System.out.println("revisionid::" + connector.getCurrentRevision(id));
 
 			// getting all documents
 
@@ -100,7 +100,7 @@ public class UserRepositoryImpl extends CouchDbRepositorySupport<User> implement
 
 		try {
 			CouchDbInstance dbInstance = getconnection();
-			CouchDbConnector connector = new StdCouchDbConnector("demoUser", dbInstance);
+			CouchDbConnector connector = new StdCouchDbConnector("demouser", dbInstance);
 
 			connector.delete(id, revision);
 
@@ -113,16 +113,11 @@ public class UserRepositoryImpl extends CouchDbRepositorySupport<User> implement
 
 	}
 
-	// Sofa sofa = ...
-	// db.update(sofa)
-	// // revision will be updated after update
-	// sofa.getRevision();
-
 	public User updateUser(User user) {
 
 		try {
 			CouchDbInstance dbInstance = getconnection();
-			CouchDbConnector connector = new StdCouchDbConnector("demoUser", dbInstance);
+			CouchDbConnector connector = new StdCouchDbConnector("demouser", dbInstance);
 
 			connector.update(user);
 			user.getRevision();
@@ -136,9 +131,23 @@ public class UserRepositoryImpl extends CouchDbRepositorySupport<User> implement
 
 	}
 
-	public List<User> findByName(String name) {
+	@Override
+	public List<User> findByName(String name) throws MalformedURLException {
 
-		return queryView(name);
+		CouchDbInstance dbInstance = getconnection();
+		CouchDbConnector connector = new StdCouchDbConnector("demouser", dbInstance);
+		CouchDbImpl impl = new CouchDbImpl(connector);
+		List<User> allUsers = new ArrayList<>();
+
+		List<User> users = impl.getAll();
+
+		for (User user : users) {
+			if (user.getName().equalsIgnoreCase(name)) {
+				allUsers.add(user);
+			}
+		}
+
+		return allUsers;
 	}
 
 }

@@ -1,5 +1,6 @@
 package com.example.demo.repository;
 
+import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.util.List;
 
@@ -13,5 +14,5 @@ User getuser(String id);
 
 User  deleteUser(String id,String revision);
 User  updateUser(User user );
-List<User> findByName(String name);
+List<User> findByName(String name) throws MalformedURLException;
 }
